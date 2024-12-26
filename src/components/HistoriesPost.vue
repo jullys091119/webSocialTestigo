@@ -1,5 +1,5 @@
 <template>
-  <section class="mx-auto container my-4">
+  <section class="section-histories my-10">
     <v-sheet class="d-flex justify-start container-histories">
       <v-card class="histories rounded-lg position-relative card elevation-3" max-width="140px" height="240px">
         <v-img height="170px" width="140px" :src="`http://localhost:3000${imgPerfil}`" cover />
@@ -100,11 +100,12 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.container {
+.section-histories {
   max-width: 680px;
   background-color: #f2f4f7;
   display: flex;
   gap: 10px;
+  margin: auto;
 }
 
 .absolute-text {

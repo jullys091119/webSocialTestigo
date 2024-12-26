@@ -19,6 +19,9 @@
             <button @click="commentPost(post.id)">Comentar</button>
           </div>
         </div>
+        <div class="currentPost">
+          <Post/>
+        </div>
       </section>
     </main>
   </div>
@@ -31,6 +34,7 @@ import PostUser from './PostUser.vue';
 import HistoriesPost from './HistoriesPost.vue';
 import { defineComponent, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router';
+import Post from './Post.vue';
 
 
 export default defineComponent({
@@ -39,6 +43,7 @@ export default defineComponent({
     HeaderComponent,
     PostUser,
     HistoriesPost,
+    Post
   },
 
   setup() {
@@ -106,6 +111,7 @@ export default defineComponent({
 <style scoped>
 .container {
   background-color: #f2f4f7;
+  min-height: 100vh
 }
 
 header {
@@ -142,7 +148,7 @@ main {
 .posts {
   display: flex;
   flex-direction: column;
-  margin-top: 240px;
+  /* margin-top: 240px; */
 }
 
 .post-card {
@@ -185,5 +191,11 @@ main {
 
 .post-actions button:hover {
   background: #005F99;
+}
+
+.currentPost {
+  max-width: 675px !important;
+  width: 675px;
+  margin: 0 auto !important;
 }
 </style>
