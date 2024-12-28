@@ -194,8 +194,8 @@ main {
 }
 
 .currentPost {
-  max-width: 675px !important;
-  width: 675px;
+  max-width: 840px !important;
+  width: 840px;
   margin: 0 auto !important;
 }
 </style>

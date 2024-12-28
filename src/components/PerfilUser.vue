@@ -37,7 +37,7 @@
         <div class="btn-container d-flex ga-2 py-3 align-self-end  ga-2">
           <div class="btn btn-color-plus cursor-pointer">
             <v-icon class="mdi-icon" size="18px">mdi-plus</v-icon>
-            <span class="title-changePicture">Agregar historia</span>
+            <span class="title-changePicture" v-on:click="goToHistories">Agregar historia</span>
           </div>
           <div class="btn btn-color-edit cursor-pointer">
             <v-icon class="mdi-icon " size="18px">mdi-pencil</v-icon>
@@ -179,8 +179,14 @@ export default defineComponent({
       }
     };
 
+
+    const goToHistories = () => {
+      router.push("./CreateHistorie")
+
+    }
+
     return {
-      returnHome, triggerFileInput, handleFileChange, img
+      returnHome, triggerFileInput, handleFileChange, img, goToHistories
     }
   }
 })
