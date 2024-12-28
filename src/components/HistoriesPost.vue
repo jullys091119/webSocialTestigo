@@ -101,7 +101,7 @@ onMounted(async () => {
 
 <style scoped>
 .section-histories {
-  max-width: 680px;
+  max-width: 840px;
   background-color: #f2f4f7;
   display: flex;
   gap: 10px;

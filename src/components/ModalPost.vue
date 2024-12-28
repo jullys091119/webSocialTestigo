@@ -25,7 +25,7 @@
           </textarea>
           <v-card width="100%" class="border my-4 py-2 px-2" v-show="preview" elevation="0">
             <v-img alt="John" :src="preview" />
-          </v-card>git 
+          </v-card>
           <div class="containerEmojies" v-show="openListEmojis">
             <Emojis @emoji-selected="handleEmojiSelected" />
           </div>
