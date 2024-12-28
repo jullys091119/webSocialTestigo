@@ -3,10 +3,10 @@
     <div class="create-post  rounded-lg" :style="avatar">
       <div class="avatarPicture d-flex ga-4">
         <v-avatar class="">
-          <v-img alt="John" src="https://cdn.vuetifyjs.com/images/john.jpg"></v-img>
+          <v-img alt="John" :src="'http://localhost:3000' + imagePerfil"></v-img>
         </v-avatar>
 
-        <div class="create-post-input " :style="createPostinputPerfil">
+        <div class="create-post-input" :style="createPostinputPerfil" v-on:click="activateModalProps = true">
           <p class="color-text">¿Qué estás pensando?</p>
         </div>
 
@@ -14,48 +14,54 @@
       <v-divider></v-divider>
       <v-img alt="imagen" v-bind:src="OpenImagesIcon" width="25px" height="25px" class="open-image"></v-img>
     </div>
-
+    <!-- Pasa el valor de activateModalProps y recibe actualizaciones mediante v-model -->
+    <ModalPost v-model:isActive="activateModalProps" />
   </section>
 </template>
+
 <script>
- import { defineComponent, ref} from 'vue';
- import  OpenImagesIcon from '../assets/images.png' 
- 
+import { defineComponent, ref } from 'vue';
+import OpenImagesIcon from '../assets/images.png';
+import ModalPost from './ModalPost.vue';
+
 export default defineComponent({
+  components: {
+    ModalPost,
+  },
   props: {
     createPostinputPerfil: {
       type: String,
-      default: '', // Puedes agregar un valor por defecto
+      default: '', // Valor por defecto
     },
-
-    avatarPicture : {
+    avatarPicture: {
       type: String,
-      default: ''
-    }
+      default: '',
+    },
   },
   setup(props) {
-    const stylePost = ref(props.customClassPost);
-    const avatar = ref(props.avatarPicture)
-    return { 
-      OpenImagesIcon, 
-      stylePost,
-      avatar,
-       // Devuelves props completo para usar `props.customStyle`
-    };
-  }
-});
+    const avatar = ref(props.avatarPicture);
+    const imagePerfil = ref(localStorage.getItem('@IMAGEPERFIL'));
+    const activateModalProps = ref(false);
 
+    return {
+      OpenImagesIcon,
+      avatar,
+      imagePerfil,
+      activateModalProps,
+    };
+  },
+});
 </script>
+
 <style scoped>
 .create-post {
-  max-width: 100%;
+  max-width: 840px;
   height: 123px;
   background-color: white;
   padding: 20px;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  width: 675px;
   margin: auto;
 }
 
