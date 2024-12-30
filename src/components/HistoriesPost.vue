@@ -128,6 +128,7 @@ onMounted(async () => {
   border: 5px solid white;
   width: 40px;
   height: 40px;
+  left: 5px;
 }
 
 .card {

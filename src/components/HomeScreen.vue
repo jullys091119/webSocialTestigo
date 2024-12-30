@@ -1,6 +1,6 @@
 <template>
+  <HeaderComponent />
   <div class="container">
-    <HeaderComponent />
     <main>
       <HistoriesPost :onButtonClick="openCreateHistories" />
       <PostUser />
@@ -74,7 +74,6 @@ export default defineComponent({
         const data = await response.json();  // Usamos await para esperar la respuesta
         if (data && data.length > 0) {
           const user = data[0];  // Accedemos al primer objeto en el array
-
           // Guardamos los datos en localStorage
           localStorage.setItem("@NAMEUSER", user.nombre);
           localStorage.setItem("@LASTNAMEUSER", user.apellido);
@@ -119,7 +118,9 @@ header {
   justify-content: space-between;
   padding: 10px;
   background-color: #fff;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid  #ccc;
+  max-height: 60px;
+
 }
 
 .search-bar {

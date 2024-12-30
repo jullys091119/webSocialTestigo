@@ -1,7 +1,12 @@
 <template>
-  <div class="pa-4 text-center">
+  <div class="pa-4 text-center relative">
     <!-- Sincronizamos v-model con la propiedad isActive -->
-    <v-dialog v-model="isActiveModal" max-width="500px" height="auto">
+    <v-dialog v-model="isActiveModal" max-width="500px"  height="auto">
+      <div class="overlay rounded-lg d-flex align-center justify-center flex-column"  v-if="isSended">
+        Publicando
+        <v-progress-circular color="dark-blue" model-value="10" indeterminate v-if="isSended"></v-progress-circular>
+        {{ circular }}
+      </div>
       <v-card rounded="lg" id="dialog" class="px-4 py-4">
         <v-card-title class="d-flex justify-end align-center px-5 ">
           <div class="text-h5 text-medium-emphasis">
@@ -17,7 +22,7 @@
             <v-img alt="John" :src="`http://localhost:3000${img}`" />
           </v-avatar>
           <p>{{ displayedEmojie }}</p>
-          <p class="nombre font-weight-bold ml-3">{{nombreUser}} {{ lastNameUser }}</p>
+          <p class="nombre font-weight-bold ml-3">{{ nombreUser }} {{ lastNameUser }}</p>
         </div>
         <form @submit.prevent="createPost(text)">
           <textarea class="create-title cursor-pointer" ref="editable" v-model="text" @focus="clearPlaceholder"
@@ -40,10 +45,10 @@
               display: inline-block;" v-on:click="openEmojis">
             </i>
           </div>
-          <v-card class="border my-4  px-2 py-4 d-flex  items-center"  elevation="0">
+          <v-card class="border my-4  px-2 py-4 d-flex  items-center" elevation="0">
             <p class="font-weight-bold">
-                Agregar publicacion
-            </p> 
+              Agregar publicacion
+            </p>
             <v-img :src="image" @click.prevent="triggerFileInput" width="24px" height="24px" />
           </v-card>
           <div class="mt-2">
@@ -72,7 +77,7 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const isActiveModal = ref(false);
+    const isActiveModal = ref(false)
     const nombreUser = localStorage.getItem("@NAMEUSER");
     const editable = ref(null); // Definir la referencia
     const text = ref(`¿Qué estás pensando, ${nombreUser}?`);
@@ -86,6 +91,8 @@ export default defineComponent({
     const openListEmojis = ref(false)
     const selectedEmoji = ref(null);
     const displayedEmojie = ref('')
+    const circular = ref('')
+    const isSended = ref(false)
 
 
     watch(selectedEmoji, (newValue) => {
@@ -96,8 +103,8 @@ export default defineComponent({
         text.value += newValue;  // Agregar el emoji al texto
 
         // Resetear selectedEmoji después de agregar el emoji
-     
-          selectedEmoji.value = null;  // Asegúrate de que solo se resetee después de agregar el emoji
+
+        selectedEmoji.value = null;  // Asegúrate de que solo se resetee después de agregar el emoji
       }
 
       // Si el texto es igual al placeholder, limpiarlo
@@ -126,16 +133,19 @@ export default defineComponent({
     const clearPlaceholder = () => {
       if (text.value === "¿Qué estás pensando, Julian?") {
         text.value = ''; // Borra el texto placeholder cuando se hace focus
+        console.log("limpiando pantalla")
       }
     };
 
+
     const updateText = (event) => {
+      console.log(text.value, "text valueupdate content")
       text.value = event.target.textContent; // Actualiza el modelo reactivo
 
     };
 
-    console.log(imgPost.value, "imagen de l post")
     const createPost = async () => {
+      isSended.value = true
       const formData = new FormData();
       formData.append('file', imgPost.value); // Archivo seleccionado
       formData.append('txt', text.value); // Texto del post
@@ -149,9 +159,14 @@ export default defineComponent({
         });
 
         const data = await response.json(); // Asegúrate de intentar obtener un JSON
-
+        
         if (response.ok) {
           console.log('Post creado:', data);
+          setTimeout(()=> {
+            isSended.value = false
+            closeModal()
+            text.value = ""
+          },2000)
         } else {
           console.error('Error al crear el post:', data.message);
         }
@@ -228,7 +243,9 @@ export default defineComponent({
       handleEmojiSelected,
       displayedEmojie,
       lastNameUser,
-      nombreUser
+      nombreUser,
+      circular,
+      isSended
     };
   },
 });
@@ -265,5 +282,15 @@ export default defineComponent({
   max-height: 500px;
   background-color: #0866FF;
   color: white;
+}
+
+.overlay {
+  width: 100%;
+  height: 38vh;
+  background-color: #F0F2F590;
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+
 }
 </style>

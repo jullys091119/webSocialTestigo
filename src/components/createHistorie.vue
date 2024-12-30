@@ -132,7 +132,7 @@ export default defineComponent({
 
       try {
         loading.value = true; // Mostrar loading
-        const response = await fetch('http://localhost:3000/subirImagen', {
+        const response = await fetch('http://localhost:3000/crearHistoria', {
           method: 'POST',
           body: formData,
         });

@@ -1,10 +1,21 @@
 <template>
+  <HeaderComponent :headerCustom="{
+    height: '60px !important',
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    padding: '10px',
+    marginBottom: '10px',
+    backgroundColor: '#FFFFFF'
+
+  }" />
   <div class="container">
     <div class="container-main">
       <div class="container-banner">
+        <img :src="`http://localhost:3000${imgCover}`" />
         <div class="containerChangePicture cursor-pointer">
           <v-col cols="auto">
-            <div class="btn">
+            <div class="btn" @click="triggerFileInput">
               <v-icon class="mdi-icon color-red" size="18px">mdi-camera</v-icon>
               <span class="title-changePicture">Editar foto de portada</span>
             </div>
@@ -14,13 +25,14 @@
       <div class="container-data-user">
         <div class="container-img">
           <v-avatar class="img-perfil">
-            <v-img alt="John" :src="`http://localhost:3000${img}`" />
+            <v-img alt="John" :src="`http://localhost:3000${imgPerfil}`" />
           </v-avatar>
           <div class="background-icon camera-absolute">
             <v-icon @click="triggerFileInput">
               mdi-camera
             </v-icon>
           </div>
+
           <input ref="fileInput" type="file" @change="handleFileChange" accept="image/*" style="display: none;" />
           <div class="data-user-title my-2">
             <h1>Julian Ontiveros</h1>
@@ -52,7 +64,7 @@
             <DetailsUser />
           </div>
         </div>
-        <div class="side-post  my-10 ">
+        <div class="side-post  mt-10 ">
           <PostUser :createPostinputPerfil="{
             flexGrow: 1,
             width: '100%',
@@ -65,7 +77,7 @@
             width: '100%',
             borderWidth: 10
           }" />
-          <CurrentPost/>
+          <CurrentPost />
         </div>
 
       </section>
@@ -81,6 +93,7 @@ import { useRouter } from 'vue-router';
 import PostUser from './PostUser.vue';
 import DetailsUser from './DetailsUser.vue';
 import CurrentPost from './Post.vue';
+import HeaderComponent from './HeaderComponent.vue';
 
 export default defineComponent({
   name: 'PerfilUser',
@@ -88,12 +101,11 @@ export default defineComponent({
     PostUser,
     DetailsUser,
     CurrentPost,
-  
+    HeaderComponent
+
   },
   setup() {
     const router = useRouter();
-    const imgPerfil = localStorage.getItem("@IMAGEPERFIL")
-    const img = ref(imgPerfil)
 
     const getIdUser = async () => {
       try {
@@ -105,59 +117,77 @@ export default defineComponent({
 
     }
 
-    const uploadImage = async (img) => {
-      const nameUser = await localStorage.getItem("@NAMEUSER")
-      const lastNameUser = await localStorage.getItem("@LASTNAMEUSER")
-      const emailUser = await localStorage.getItem("@EMAILUSER")
-      const password = await localStorage.getItem("@PASSWORD")
+    const imgPerfil = ref(localStorage.getItem("@IMAGEPERFIL"));
+    const uploadImage = async (file) => {
+      const nameUser = await localStorage.getItem("@NAMEUSER");
+      const lastNameUser = await localStorage.getItem("@LASTNAMEUSER");
+      const emailUser = await localStorage.getItem("@EMAILUSER");
+      const password = await localStorage.getItem("@PASSWORD");
       const responseId = await getIdUser(); // Obtener el ID del usuario
-      console.log('ID del usuario:', responseId); // Asegúrate de que responseId no sea null ni undefined
-
-      if (!responseId) {
-        console.error("No se obtuvo un id de usuario válido");
-        return;
-      }
 
       const formData = new FormData();
-      formData.append('file', img); // Se añade la imagen al FormData
-      formData.append('idUser', responseId); // Se añade el idUser al FormData
-      formData.append('nameUser', nameUser)
-      formData.append('lastNameUser', lastNameUser)
-      formData.append('emailUser', emailUser)
-      formData.append('password', password)
+      formData.append('file', file); // Imagen de perfil
+      formData.append('idUser', responseId); // El ID del usuario
+      formData.append('nameUser', nameUser);
+      formData.append('lastNameUser', lastNameUser);
+      formData.append('emailUser', emailUser);
+      formData.append('password', password);
       formData.append('isProfileImage', true);
 
       try {
-        // loading.value = true; // Mostrar loading
-        const response = await fetch('http://localhost:3000/subirImagen', {
+        const response = await fetch('http://localhost:3000/cambiarPerfil', {
           method: 'POST',
           body: formData,
         });
-
         const data = await response.json();
-        console.log(data, "data");
 
-        if (!response.ok) {
-          throw new Error(data.message || `Error en la solicitud: ${response.statusText}`);
+        console.log(data, "Respuesta del servidor"); // Verifica la respuesta
+
+        if (data.success) {
+          localStorage.setItem("@IMAGEPERFIL", data.data.foto_perfil);
+          imgPerfil.value = data.data.foto_perfil; // Actualiza directamente
+          // console.log(imgPerfil.value, "imageprfil"); // Verifica que el valor se actualice
         }
-
-        console.log('Respuesta del servidor:', data);
-
-        return {
-          foto_perfil: data.data.foto_perfil,
-          idUser: responseId,
-          isProfileImage: true,
-          nameUser: nameUser,
-          lastNameUser: lastNameUser,
-          emailUser: emailUser,
-          password: password
-        };
       } catch (error) {
-        console.error('Error al subir el archivo:', error);
-        // Aquí podrías mostrar un mensaje de error al usuario
-      } finally {
-        // loading.value = false; // Ocultar loading
-        console.log("finalmente")
+        console.error('Error al subir la imagen:', error);
+      }
+    };
+
+      
+    const imgCover = ref(localStorage.getItem("@IMAGECOVER"));
+    const uploadImageCover = async (fileCover) => {
+      const nameUser = await localStorage.getItem("@NAMEUSER");
+      const lastNameUser = await localStorage.getItem("@LASTNAMEUSER");
+      const emailUser = await localStorage.getItem("@EMAILUSER");
+      const password = await localStorage.getItem("@PASSWORD");
+      const responseId = await getIdUser(); // Obtener el ID del usuario
+
+      const formData = new FormData();
+      formData.append('file', fileCover); // Imagen de perfil
+      formData.append('idUser', responseId); // El ID del usuario
+      formData.append('nameUser', nameUser);
+      formData.append('lastNameUser', lastNameUser);
+      formData.append('emailUser', emailUser);
+      formData.append('password', password);
+      formData.append('isProfileImage', true);
+
+      try {
+        const response = await fetch('http://localhost:3000/cambiarPortada', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json();
+
+        console.log(data, "Respuesta del servidor"); // Verifica la respuesta
+
+        if (data.success) {
+          localStorage.setItem("@IMAGECOVER", data.data.img_portada);
+          imgCover.value = data.data.img_portada; // Actualiza directamente
+          console.log(imgCover.value, "comg")
+          // console.log(imgPerfil.value, "imageprfil"); // Verifica que el valor se actualice
+        }
+      } catch (error) {
+        console.error('Error al subir la imagen:', error);
       }
     };
 
@@ -176,17 +206,19 @@ export default defineComponent({
       const file = event.target.files[0];
       if (file) {
         uploadImage(file)
+        uploadImageCover(file)
+        // localStorage.removeItem('@IMAGEPERFIL');
+        // // uploadImageCover(file)
       }
     };
 
 
     const goToHistories = () => {
       router.push("./CreateHistorie")
-
     }
 
     return {
-      returnHome, triggerFileInput, handleFileChange, img, goToHistories
+      returnHome, triggerFileInput, handleFileChange, imgPerfil, goToHistories, imgCover
     }
   }
 })
@@ -203,10 +235,23 @@ export default defineComponent({
   /* Opcional */
 }
 
-
 .container {
   max-width: 100%;
+  height: 410px !important;
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.6)
+      /* Transparente en la parte superior */
+      , rgba(0, 0, 0, 0.4)
+      /* Negro translúcido */
+      , rgba(0, 0, 0, 0.3)
+      /* Negro más opaco */
+      , rgba(0, 0, 0, 0.2)
+      /* Negro casi opaco */
+      , rgba(0, 0, 0, 0)
+      /* Negro completamente opaco en la parte inferior */
+    );
 }
+
 
 .container-main {
   background-color: #f2f4f7;
