@@ -82,4 +82,10 @@ export default defineComponent({
   margin-left: -66px;
 }
 
+@media (max-width: 467px) {
+ .search {
+    width: 100px;
+ }
+}
+
 </style>

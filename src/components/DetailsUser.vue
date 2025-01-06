@@ -37,10 +37,16 @@ export default defineComponent({
    font-weight: 500;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1290px) {
   .side-datails .btn1, .btn2, .btn3  {
    max-width: 400px !important;
    width: 360px !important;
+  }
+}
+@media screen and (max-width: 992px) {
+   .side-datails .btn1, .btn2, .btn3  {
+   max-width: 845px !important;
+   width: 100% !important;
   }
 }
 </style>

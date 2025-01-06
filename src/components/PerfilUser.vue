@@ -11,13 +11,20 @@
   }" />
   <div class="container">
     <div class="container-main">
-      <div class="container-banner">
-        <img :src="`http://localhost:3000${imgCover}`" />
+      <div class="container-banner" ref="containerbanner">
+        <img :src="`http://localhost:3000${imgCover}`" class="portada" />
         <div class="containerChangePicture cursor-pointer">
           <v-col cols="auto">
-            <div class="btn" @click="triggerFileInput">
+            <div class="btn-cover" @click="triggerFileInput('portada')">
               <v-icon class="mdi-icon color-red" size="18px">mdi-camera</v-icon>
               <span class="title-changePicture">Editar foto de portada</span>
+            </div>
+          </v-col>
+        </div>
+        <div class="miniContainerChangePicture cursor-pointer">
+          <v-col cols="auto">
+            <div class="btnMiniCover" @click="triggerFileInput('portada')" >
+              <v-icon class="mdi-icon" size="18px">mdi-camera</v-icon>
             </div>
           </v-col>
         </div>
@@ -28,12 +35,14 @@
             <v-img alt="John" :src="`http://localhost:3000${imgPerfil}`" />
           </v-avatar>
           <div class="background-icon camera-absolute">
-            <v-icon @click="triggerFileInput">
+            <v-icon @click="triggerFileInput('perfil')">
               mdi-camera
             </v-icon>
           </div>
-
-          <input ref="fileInput" type="file" @change="handleFileChange" accept="image/*" style="display: none;" />
+          <input ref="fileInputPerfil" type="file" @change="handleFileChange('perfil', $event)" accept="image/*"
+            style="display: none;" data-type="perfil" />
+          <input ref="fileInputPortada" type="file" @change="handleFileChange('portada', $event)" accept="image/*"
+            style="display: none;" data-type="portada" />
           <div class="data-user-title my-2">
             <h1>Julian Ontiveros</h1>
             <div class="long-user-friends">
@@ -58,8 +67,8 @@
         </div>
       </div>
 
-      <section class="posts-details d-flex">
-        <div class="side-datails d-flex my-10">
+      <section class="posts-details">
+        <div class="side-datails  my-10">
           <div class="details">
             <DetailsUser />
           </div>
@@ -76,10 +85,13 @@
             flex: 1,
             width: '100%',
             borderWidth: 10
-          }" />
-          <CurrentPost />
+          }"
+          
+          :customWidth="{maxWidth: '100%'}" 
+          />
+          
+          <CurrentPost :customClass="'widthPost'"/>
         </div>
-
       </section>
     </div>
 
@@ -88,7 +100,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import PostUser from './PostUser.vue';
 import DetailsUser from './DetailsUser.vue';
@@ -105,7 +117,18 @@ export default defineComponent({
 
   },
   setup() {
+    const containerbanner = ref(null);
+    const getWidthBanner = ref(0)
     const router = useRouter();
+
+    onMounted(() => {
+      console.log(containerbanner.value, "containerbanner onMounted");
+      if (containerbanner.value) {
+        getWidthBanner.value = containerbanner.value.offsetWidth;
+      }
+    });
+  
+    
 
     const getIdUser = async () => {
       try {
@@ -153,7 +176,7 @@ export default defineComponent({
       }
     };
 
-      
+
     const imgCover = ref(localStorage.getItem("@IMAGECOVER"));
     const uploadImageCover = async (fileCover) => {
       const nameUser = await localStorage.getItem("@NAMEUSER");
@@ -183,7 +206,6 @@ export default defineComponent({
         if (data.success) {
           localStorage.setItem("@IMAGECOVER", data.data.img_portada);
           imgCover.value = data.data.img_portada; // Actualiza directamente
-          console.log(imgCover.value, "comg")
           // console.log(imgPerfil.value, "imageprfil"); // Verifica que el valor se actualice
         }
       } catch (error) {
@@ -196,29 +218,38 @@ export default defineComponent({
       router.push('./homeScreen')
     }
 
-    const triggerFileInput = () => {
-      const fileInput = document.querySelector('input[type="file"]'); // Accedemos al input oculto
-      fileInput.click(); // Disparamos el clic en el input de tipo archivo
+    const triggerFileInput = (type) => {
+      const fileInput = type === 'perfil' ? document.querySelector('input[type="file"][data-type="perfil"]') : document.querySelector('input[type="file"][data-type="portada"]');
+      fileInput.click();
     };
 
-
-    const handleFileChange = (event) => {
+    const handleFileChange = (type, event) => {
       const file = event.target.files[0];
       if (file) {
-        uploadImage(file)
-        uploadImageCover(file)
-        // localStorage.removeItem('@IMAGEPERFIL');
-        // // uploadImageCover(file)
+        if (type === 'perfil') {
+          uploadImage(file);
+        } else if (type === 'portada') {
+          uploadImageCover(file);
+        }
       }
     };
-
 
     const goToHistories = () => {
       router.push("./CreateHistorie")
     }
 
+
+
     return {
-      returnHome, triggerFileInput, handleFileChange, imgPerfil, goToHistories, imgCover
+      returnHome,
+      triggerFileInput,
+      handleFileChange,
+      imgPerfil,
+      goToHistories,
+      imgCover,
+      containerbanner,
+      getWidthBanner,
+    
     }
   }
 })
@@ -278,6 +309,14 @@ export default defineComponent({
   bottom: 20px;
   display: flex;
   justify-content: flex-end;
+  
+}
+
+.miniContainerChangePicture {
+  width: 100px !important;
+  position: absolute;
+  right: 7px;
+  bottom: 20px;
 }
 
 .title-changePicture {
@@ -291,7 +330,6 @@ export default defineComponent({
 }
 
 .container-img {
-  width: 700px;
   display: flex;
   position: relative;
   gap: 50px;
@@ -303,7 +341,7 @@ export default defineComponent({
   max-height: 134px;
 }
 
-.btn {
+.btn, .btn-cover {
   background-color: #FFFFFF;
   height: 40px;
   width: 207.42px;
@@ -315,6 +353,20 @@ export default defineComponent({
   gap: 4px;
   border-radius: 5px;
 }
+.btnMiniCover {
+  background-color: #FFFFFF;
+    height: 40px;
+    width: 55px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    display: none;
+    border-radius: 5px;
+}
+
 
 .button-changePicture {
   width: 240.42px;
@@ -324,7 +376,7 @@ export default defineComponent({
 }
 
 .btn-container {
-  margin-right: 38px;
+  margin-right: 40px;
 }
 
 .btn-color-plus {
@@ -382,16 +434,105 @@ export default defineComponent({
 
 .side-post {
   flex: 2;
+  max-width: 60%
 }
 
 .posts-details {
-  gap: 12px;
   padding: 0 40px;
+  gap: 10px;
+  display: flex;
 }
 
-@media (max-width: 1200px) {
+.portada {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+@media (max-width: 848px) {
+  .container-data-user {
+    flex-direction: column !important;
+  }
   .details {
-    max-width: 400px !important;
+    margin-top: 90px;
+  }
+  .camera-absolute {
+    bottom: 44px !important;
+  }
+}
+
+
+
+@media (max-width: 467px) {
+  .camera-absolute {
+    bottom: 127px !important;
+    left: 228px;
+  }
+  .btn-cover {
+    display: none;
+  }
+  .btnMiniCover {
+    display: flex;
+  }
+  .container-img {
+    display: block;
+  }
+  .img-perfil {
+    top: 20px;
+    left: 124px !important;
+  }
+  .container-data-user {
+    flex-direction: column !important;
+    justify-content: center;
+  }
+  .data-user-title {
+    margin: 22px auto 0 auto !important;
+    text-align: center;
+  }
+  .btn-container {
+    margin: auto
+  }
+  .container-banner {
+    height:250px;
+  }
+}
+
+
+
+@media(max-width: 948px) {
+  .posts-details {
+    flex-direction: column;
+  }
+
+  .side-datails {
+    margin-bottom: 0px !important;
+  }
+
+  .side-post {
+    max-width: 100%;
+  }
+
+  .details {
+    max-width: 100%;
+  }
+}
+
+
+@media (max-width: 399px) {
+  .img-perfil {
+   left: 112px !important;
+  }
+  .miniContainerChangePicture {
+    right: -10px;
+  }
+}
+
+@media (max-width: 363px) {
+  .img-perfil {
+    left: 90px !important;
+  }
+  .miniContainerChangePicture {
+    right: -10px;
   }
 }
 </style>
