@@ -1,14 +1,14 @@
 <template>
-  <div class="pa-4 text-center relative">
+  <div class="text-center relative">
     <!-- Sincronizamos v-model con la propiedad isActive -->
-    <v-dialog v-model="isActiveModal" max-width="500px"  height="auto">
-      <div class="overlay rounded-lg d-flex align-center justify-center flex-column"  v-if="isSended">
+    <v-dialog v-model="isActiveModal" max-width="500px" max-height="800px" ref="containerSticky">
+      <div class="overlay rounded-lg d-flex align-center justify-center border flex-column"  v-if="isSended" >
         Publicando
         <v-progress-circular color="dark-blue" model-value="10" indeterminate v-if="isSended"></v-progress-circular>
         {{ circular }}
       </div>
-      <v-card rounded="lg" id="dialog" class="px-4 py-4">
-        <v-card-title class="d-flex justify-end align-center px-5 ">
+      <v-card rounded="lg" id="dialog" class="px-4 py-4 ">
+        <v-card-title class="d-flex justify-end align-center px-5">
           <div class="text-h5 text-medium-emphasis">
             <span class="mr-14 font-weight-bold">Crear publicacion</span>
           </div>
@@ -21,15 +21,17 @@
           <v-avatar class="img-perfil">
             <v-img alt="John" :src="`http://localhost:3000${img}`" />
           </v-avatar>
-          <p>{{ displayedEmojie }}</p>
           <p class="nombre font-weight-bold ml-3">{{ nombreUser }} {{ lastNameUser }}</p>
         </div>
-        <form @submit.prevent="createPost(text)">
+        <form @submit.prevent="createPost">
           <textarea class="create-title cursor-pointer" ref="editable" v-model="text" @focus="clearPlaceholder"
-            @input="resizeTextArea" cols="55" rows="1" id="autoGrow">
+            @input="resizeTextArea" cols="55" rows="1" id="autoGrow"
+            :style="{ fontSize: text.length >= 200 ? '16px' : '23px' }">
           </textarea>
-          <v-card width="100%" class="border my-4 py-2 px-2" v-show="preview" elevation="0">
-            <v-img alt="John" :src="preview" />
+          <v-card width="100%" maxHeight="370px" class=" my-2 py-4 px-4  d-flex justify-center rounded border"
+            v-show="preview" elevation="0" v-if="preview">
+            <v-img alt="John" maxWidth="481px" maxHeight="252px" width="200px !important" class="rounded" :src="preview"
+              cover />
           </v-card>
           <div class="containerEmojies" v-show="openListEmojis">
             <Emojis @emoji-selected="handleEmojiSelected" />
@@ -42,26 +44,27 @@
               background-position: 0px -58px;
               background-size: auto;
               background-repeat: no-repeat;
-              display: inline-block;" v-on:click="openEmojis">
+              display: inline-block;" @click="openEmojis">
             </i>
           </div>
-          <v-card class="border my-4  px-2 py-4 d-flex  items-center" elevation="0">
-            <p class="font-weight-bold">
-              Agregar publicacion
-            </p>
-            <v-img :src="image" @click.prevent="triggerFileInput" width="24px" height="24px" />
-          </v-card>
-          <div class="mt-2">
-            <v-btn type="submit" block class="button ">Publicar</v-btn>
+          <input id="fileInput" type="file" @change="handleFileChange" accept="image/*" style="display: none;" />
+          <div class="containerFixed">
+            <v-card class="border my-4 px-2 py-4 d-flex items-center" elevation="0">
+              <p class="font-weight-bold">Agregar publicacion</p>
+              <v-img :src="image" @click.prevent="triggerFileInput" width="24px" height="24px" />
+            </v-card>
+            <div class="">
+              <v-btn type="submit" block class="button">Publicar</v-btn>
+            </div>
           </div>
-          <input ref="fileInput" type="file" @change="handleFileChange" accept="image/*" style="display: none;" />
         </form>
       </v-card>
     </v-dialog>
   </div>
 </template>
+
 <script>
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
 import OpenImagesIcon from '../assets/images.png';
 import Emojis from './Emojis.vue';
 
@@ -76,97 +79,96 @@ export default defineComponent({
       default: false,
     },
   },
-  setup(props, { emit }) {
-    const isActiveModal = ref(false)
+  setup(props, { emit, }) {
+    const isActiveModal = ref(false);
     const nombreUser = localStorage.getItem("@NAMEUSER");
-    const editable = ref(null); // Definir la referencia
+    const editable = ref(null);
     const text = ref(`¿Qué estás pensando, ${nombreUser}?`);
     const image = ref(OpenImagesIcon);
     const imgPerfil = localStorage.getItem("@IMAGEPERFIL");
-    const lastNameUser = localStorage.getItem("@LASTNAMEUSER")
+    const lastNameUser = localStorage.getItem("@LASTNAMEUSER");
     const id = localStorage.getItem("@ID");
     const img = ref(imgPerfil);
-    const imgPost = ref({})
-    const preview = ref(null)
-    const openListEmojis = ref(false)
-    const selectedEmoji = ref(null);
-    const displayedEmojie = ref('')
-    const circular = ref('')
-    const isSended = ref(false)
+    const imgPost = ref(null);
+    const preview = ref(null);
+    const openListEmojis = ref(false);
+    // const selectedEmoji = ref(null);
+    const displayedEmojie = ref('');
+    const circular = ref('');
+    const isSended = ref(false);
+    const containerSticky = ref(null);
+    const height = ref(0);
 
+    onMounted(async () => {
+      await nextTick(); // Asegura que Vue haya actualizado el DOM
+      console.dir(containerSticky.value.height, "Container sticky")
+      height.value = containerSticky.value.height;
 
-    watch(selectedEmoji, (newValue) => {
-      console.log(newValue, "nuevo valor");
-
-      // Verificar que no sea null ni vacío antes de agregar el emoji
-      if (newValue) {
-        text.value += newValue;  // Agregar el emoji al texto
-
-        // Resetear selectedEmoji después de agregar el emoji
-
-        selectedEmoji.value = null;  // Asegúrate de que solo se resetee después de agregar el emoji
-      }
-
-      // Si el texto es igual al placeholder, limpiarlo
-      if (text.value === `¿Qué estás pensando, Julian?${newValue}`) {
-        console.log(text.value);  // Borra el texto placeholder cuando se hace focus
-        text.value = '';  // Limpiar el texto si es el placeholder
-        text.value += newValue;
-      }
     });
-
 
     watch(
       () => props.isActive,
       (newValue) => {
-        isActiveModal.value = newValue; // Mantener sincronizados los valores
+        isActiveModal.value = newValue;
       }
     );
 
-
     const handleEmojiSelected = (emoji) => {
-      selectedEmoji.value = emoji;  // Asignar el emoji seleccionado
-    };
+      const textarea = editable.value;  // Accedemos al textarea directamente
 
+      // Obtenemos la posición actual del cursor
+      const cursorPos = textarea.selectionStart;
+      const textBefore = text.value.slice(0, cursorPos);  // El texto antes del cursor
+      const textAfter = text.value.slice(cursorPos);  // El texto después del cursor
+
+      // Insertamos el emoji en la posición del cursor
+      text.value = textBefore + emoji + textAfter;
+
+      // Movemos el cursor a la nueva posición después del emoji insertado
+      nextTick(() => {
+        textarea.selectionStart = textarea.selectionEnd = cursorPos + emoji.length;
+        textarea.focus();  // Aseguramos que el textarea siga enfocado
+      });
+    };
 
 
     const clearPlaceholder = () => {
-      if (text.value === "¿Qué estás pensando, Julian?") {
-        text.value = ''; // Borra el texto placeholder cuando se hace focus
-        console.log("limpiando pantalla")
+      if (text.value === `¿Qué estás pensando, ${nombreUser}?`) {
+        text.value = '';
+        console.log("limpiando pantalla");
       }
     };
 
-
     const updateText = (event) => {
-      console.log(text.value, "text valueupdate content")
-      text.value = event.target.textContent; // Actualiza el modelo reactivo
-
+      console.log(event.target.textContent);
+      text.value = event.target.textContent;
     };
 
     const createPost = async () => {
-      isSended.value = true
+      isSended.value = true;
       const formData = new FormData();
-      formData.append('file', imgPost.value); // Archivo seleccionado
-      formData.append('txt', text.value); // Texto del post
-      formData.append('id', id); // ID del usuario
-      formData.append('nombreUser', nombreUser); // Nombre del autor
-
+      formData.append('file', imgPost.value);
+      formData.append('txt', text.value);
+      formData.append('id', id);
+      formData.append('nombreUser', nombreUser);
+      console.log(imgPost.value, "imagen value");
       try {
         const response = await fetch('http://localhost:3000/insertarPost', {
           method: 'POST',
           body: formData,
         });
 
-        const data = await response.json(); // Asegúrate de intentar obtener un JSON
-        
+        const data = await response.json();
+
         if (response.ok) {
           console.log('Post creado:', data);
-          setTimeout(()=> {
-            isSended.value = false
-            closeModal()
-            text.value = ""
-          },2000)
+          setTimeout(() => {
+            isSended.value = false;
+            closeModal();
+            text.value = "";
+            imgPost.value = null;
+            preview.value = null;
+          }, 2000);
         } else {
           console.error('Error al crear el post:', data.message);
         }
@@ -177,43 +179,39 @@ export default defineComponent({
 
     const resizeTextArea = () => {
       const textarea = document.getElementById('autoGrow');
-      textarea.style.height = `${textarea.scrollHeight}px`;  // Ajusta la altura según 
+      textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
+
+    // Función para abrir el selector de archivos utilizando querySelector
     const triggerFileInput = () => {
-      const fileInput = document.querySelector('input[type="file"]'); // Accedemos al input oculto
-      fileInput.click(); // Disparamos el clic en el input de tipo archivo
+      // Usamos el selector para acceder al input por su id
+      const fileInput = document.querySelector('#fileInput');
+
+      if (fileInput) {
+        // console.log("Referencia al input de archivo encontrada:", fileInput);
+        fileInput.click();  // Dispara el clic para abrir el selector de archivos
+      } else {
+        console.error("No se pudo acceder al input de archivo.");
+      }
     };
 
     const handleFileChange = (event) => {
+      console.log(event);
       const file = event.target.files[0];
       if (file) {
         const img = new Image();
         preview.value = URL.createObjectURL(file);
-        // Cargar la imagen seleccionada
         const reader = new FileReader();
         reader.onload = function (e) {
           img.src = e.target.result;
         };
         reader.readAsDataURL(file);
         img.onload = function () {
-          // Detectar orientación
-          if (img.width > img.height) {
-            console.log('La imagen es horizontal');
-            // Puedes hacer algo específico para las imágenes horizontales, como redimensionarlas o ajustarlas.
-          } else if (img.width < img.height) {
-            console.log('La imagen es vertical');
-            // Aquí puedes hacer lo mismo para las imágenes verticales.
-          } else {
-            console.log('La imagen es cuadrada');
-          }
-
-          // Asignar la imagen seleccionada al estado o propiedad correspondiente
           imgPost.value = file;
         };
       }
     };
-
 
     const closeModal = () => {
       isActiveModal.value = false;
@@ -222,7 +220,7 @@ export default defineComponent({
 
     const openEmojis = () => {
       openListEmojis.value = !openListEmojis.value;
-    }
+    };
 
     return {
       isActiveModal,
@@ -245,7 +243,9 @@ export default defineComponent({
       lastNameUser,
       nombreUser,
       circular,
-      isSended
+      isSended,
+      containerSticky,
+      height,
     };
   },
 });
@@ -254,11 +254,10 @@ export default defineComponent({
 <style scoped>
 .create-title {
   color: #ACAEB0;
-  max-height: 500px !important;
-  max-width: 500px;
+  max-height: auto !important;
+  max-width: 467px;
   resize: none;
   font-size: 23px;
-
 }
 
 .v-img__img {
@@ -267,9 +266,7 @@ export default defineComponent({
 
 .create-title:focus {
   outline: none;
-  /* Elimina el contorno de enfoque */
   border: none;
-  /* Elimina cualquier borde si es que existe */
 }
 
 .close-icon {
@@ -286,11 +283,22 @@ export default defineComponent({
 
 .overlay {
   width: 100%;
-  height: 38vh;
+  height: 100%;
   background-color: #F0F2F590;
   position: absolute;
   z-index: 1;
   overflow: hidden;
+}
 
+.containerFixed {
+  position: sticky;
+  bottom: -24px;
+  width: 100%;
+  background-color: white;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 20px;
 }
 </style>

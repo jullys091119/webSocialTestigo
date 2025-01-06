@@ -3,24 +3,10 @@
   <div class="container">
     <main>
       <HistoriesPost :onButtonClick="openCreateHistories" />
-      <PostUser />
       <section class="posts">
-        <div v-for="post in posts" :key="post.id" class="post-card">
-          <div class="post-header">
-            <img :src="post.userAvatar" alt="User Avatar" class="avatar">
-            <div class="user-info">
-              <span class="user-name"></span>
-              <span class="post-date"></span>
-            </div>
-          </div>
-          <p class="post-content">{{ post.content }}</p>
-          <div class="post-actions">
-            <button @click="likePost(post.id)">Me gusta</button>
-            <button @click="commentPost(post.id)">Comentar</button>
-          </div>
-        </div>
         <div class="currentPost">
-          <Post/>
+          <PostUser :customWidthPosts = "{maxWidth: '100% !important'}" />
+          <Post :imgWidthFull="{width:'100% !important'}"/>
         </div>
       </section>
     </main>
@@ -120,7 +106,6 @@ header {
   background-color: #fff;
   border-bottom: 1px solid  #ccc;
   max-height: 60px;
-
 }
 
 .search-bar {
@@ -194,9 +179,12 @@ main {
   background: #005F99;
 }
 
-.currentPost {
-  max-width: 840px !important;
-  width: 840px;
-  margin: 0 auto !important;
+@media (min-width: 848px) {
+  .currentPost {
+    max-width: 840px !important;
+    width: 840px;
+    margin: 0 auto !important;
+  }
 }
+
 </style>
