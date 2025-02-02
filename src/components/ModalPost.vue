@@ -70,7 +70,7 @@ import Emojis from './Emojis.vue';
 
 export default defineComponent({
   components: {
-    Emojis
+    Emojis,
   },
   name: "ModalPost",
   props: {
