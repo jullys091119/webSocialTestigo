@@ -1,7 +1,7 @@
 <template>
   <HeaderComponent />
   <div class="container">
-    <main>
+    <main class="containerMain">
       <HistoriesPost :onButtonClick="openCreateHistories" />
       <section class="posts">
         <div class="currentPost">
